@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бешик Той — Нурмухаммед</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Comfortaa:wght@400;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        skyLight: '#e0f2fe',
+                        skySoft: '#bae6fd',
+                        cloudWhite: '#ffffff',
+                        goldAccent: '#d97706',
+                        goldSoft: '#fef3c7',
+                        babyBlue: '#0284c7',
+                        deepNavy: '#0f172a'
+                    },
+                    fontFamily: {
+                        title: ['Comfortaa', 'sans-serif'],
+                        hand: ['Caveat', 'cursive'],
+                        sans: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 50%, #f0f9ff 100%);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Canvas Floating Particles & Stars */
+        #skyCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Custom Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1.5deg); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(217, 119, 6, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(217, 119, 6, 0.6); }
+        }
+
+        .animate-float {
+            animation: floatSlow 5s ease-in-out infinite;
+        }
+
+        .animate-pulse-glow {
+            animation: pulseGlow 2.5s infinite;
+        }
+
+        /* Glassmorphic Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(14, 165, 233, 0.15);
+        }
+
+        /* SVG Cloud styling */
+        .cloud-shape {
+            filter: drop-shadow(0 15px 25px rgba(186, 230, 253, 0.5));
+        }
+
+        /* Scroll Reveal Effect Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="text-slate-700 relative selection:bg-sky-200">
+
+    <canvas id="skyCanvas"></canvas>
+
+    <!-- Audio Player Button -->
+    <button id="audioToggleBtn" onclick="toggleAudio()" class="fixed top-5 right-5 z-50 bg-white/80 backdrop-blur-md p-3.5 rounded-full shadow-lg text-sky-600 hover:text-sky-800 hover:scale-110 transition-all border border-sky-100 flex items-center justify-center w-12 h-12">
+        <i id="audioIcon" class="fas fa-music text-lg"></i>
+    </button>
+    <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lullaby-114002.mp3"></audio>
+
+    <!-- HERO SECTION (Interactive Cloud & Hot Air Balloon Stage) -->
+    <section id="hero" class="min-h-screen relative flex flex-col items-center justify-center px-4 pt-12 pb-20 z-10 overflow-hidden">
+        
+        <!-- Animated Background Clouds -->
+        <div class="absolute inset-0 pointer-events-none opacity-40">
+            <div class="absolute top-10 left-[-10%] w-64 md:w-96 text-white animate-float" style="animation-delay: 0s;">
+                <svg viewBox="0 0 200 120" fill="currentColor"><path d="M40,90 Q10,90 10,65 Q10,40 35,40 Q50,20 80,25 Q100,5 130,20 Q160,10 175,35 Q195,45 190,70 Q195,90 165,90 Z"/></svg>
+            </div>
+            <div class="absolute top-1/3 right-[-5%] w-72 md:w-80 text-white animate-float" style="animation-delay: 2s;">
+                <svg viewBox="0 0 200 120" fill="currentColor"><path d="M40,90 Q10,90 10,65 Q10,40 35,40 Q50,20 80,25 Q100,5 130,20 Q160,10 175,35 Q195,45 190,70 Q195,90 165,90 Z"/></svg>
+            </div>
+        </div>
+
+        <!-- STAGE CONTAINER -->
+        <div class="relative w-full max-w-2xl h-[420px] md:h-[500px] flex items-center justify-center">
+            
+            <!-- 1. HOT AIR BALLOON (Emits from behind the central cloud with Zoom Effect) -->
+            <div id="hotAirBalloon" class="absolute z-10 transition-all duration-1000 ease-out transform scale-50 opacity-0 translate-y-20 flex flex-col items-center">
+                <svg class="w-48 h-64 md:w-60 md:h-80 drop-shadow-2xl animate-float" viewBox="0 0 200 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Balloon Body -->
+                    <path d="M100 10 C155 10 185 55 170 110 C158 150 125 180 100 190 C75 180 42 150 30 110 C15 55 45 10 100 10 Z" fill="url(#balloonGrad)"/>
+                    <!-- Stripes -->
+                    <path d="M100 10 C125 10 145 55 135 110 C128 150 112 180 100 190 C88 180 72 150 65 110 C55 55 75 10 100 10 Z" fill="#ffffff" fill-opacity="0.35"/>
+                    <path d="M100 10 C110 10 120 55 115 110 C110 150 105 180 100 190 C95 180 90 150 85 110 C80 55 90 10 100 10 Z" fill="#fef3c7" fill-opacity="0.5"/>
+                    <!-- Cute Garland / Bunting on Balloon -->
+                    <path d="M45 80 Q 70 100 100 85 Q 130 100 155 80" stroke="#f59e0b" stroke-width="2" fill="none"/>
+                    <polygon points="60,90 68,105 76,92" fill="#ef4444"/>
+                    <polygon points="90,92 98,108 106,92" fill="#3b82f6"/>
+                    <polygon points="120,92 128,108 136,92" fill="#10b981"/>
+                    <!-- Ropes -->
+                    <line x1="75" y1="185" x2="82" y2="215" stroke="#78350f" stroke-width="2"/>
+                    <line x1="125" y1="185" x2="118" y2="215" stroke="#78350f" stroke-width="2"/>
+                    <!-- Basket -->
+                    <rect x="80" y="215" width="40" height="30" rx="6" fill="#b45309" stroke="#78350f" stroke-width="2"/>
+                    <path d="M80 225 H120 M80 235 H120 M93 215 V245 M107 215 V245" stroke="#92400e" stroke-width="1.5"/>
+                    <!-- Cute Bear in Basket -->
+                    <circle cx="100" cy="210" r="10" fill="#a16207"/> <!-- Head -->
+                    <circle cx="94" cy="202" r="3.5" fill="#a16207"/> <!-- Left Ear -->
+                    <circle cx="106" cy="202" r="3.5" fill="#a16207"/> <!-- Right Ear -->
+                    <circle cx="100" cy="212" r="4" fill="#fef08a"/> <!-- Snout -->
+                    <circle cx="100" cy="211" r="1.5" fill="#451a03"/> <!-- Nose -->
+                    <circle cx="97" cy="208" r="1" fill="#451a03"/> <!-- Left Eye -->
+                    <circle cx="103" cy="208" r="1" fill="#451a03"/> <!-- Right Eye -->
+                    
+                    <!-- Gradients -->
+                    <defs>
+                        <linearGradient id="balloonGrad" x1="20" y1="10" x2="180" y2="190" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#38bdf8"/>
+                            <stop offset="50%" stop-color="#818cf8"/>
+                            <stop offset="100%" stop-color="#f472b6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+
+            <!-- 2. MAIN FRONT CLOUD (Appears first, then splits/scales gently) -->
+            <div id="mainCloud" class="absolute z-20 transition-all duration-1000 ease-out transform scale-0 opacity-0 flex flex-col items-center justify-center pointer-events-none">
+                <svg class="w-80 h-48 md:w-[450px] md:h-[260px] cloud-shape text-white" viewBox="0 0 240 140" fill="currentColor">
+                    <path d="M 50 110 
+                             A 35 35 0 0 1 40 40 
+                             A 45 45 0 0 1 110 20 
+                             A 45 45 0 0 1 180 40 
+                             A 35 35 0 0 1 190 110 
+                             Z" />
+                </svg>
+            </div>
+
+            <!-- START ANIMATION TRIGGER BUTTON (If user interacts early) -->
+            <div id="startPrompt" class="absolute z-30 bottom-4 bg-white/90 backdrop-blur px-6 py-2.5 rounded-full shadow-lg border border-sky-200 text-sky-700 text-sm font-medium animate-bounce cursor-pointer" onclick="triggerHeroSequence()">
+                ✨ Нажмите, чтобы открыть приглашение
+            </div>
+        </div>
+
+        <!-- 3. TITLE & NAME (Fades in after balloon reveals) -->
+        <div id="heroText" class="text-center z-30 opacity-0 transform translate-y-8 transition-all duration-1000 mt-2">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/80 border border-amber-300 text-amber-800 text-xs md:text-sm font-semibold tracking-wider uppercase mb-3 shadow-sm">
+                <i class="fas fa-star text-amber-500"></i> ПРИГЛАШЕНИЕ НА ТОРЖЕСТВО <i class="fas fa-star text-amber-500"></i>
+            </div>
+            
+            <h1 class="font-title text-3xl md:text-5xl font-bold text-sky-900 tracking-tight mb-2">
+                БЕШИК ТОЙ
+            </h1>
+            
+            <div class="relative inline-block my-2">
+                <span class="font-title text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-blue-700 to-indigo-600 tracking-wide px-2">
+                    НУРМУХАММЕД
+                </span>
+                <div class="h-1.5 w-full bg-gradient-to-r from-sky-300 via-amber-400 to-sky-300 rounded-full mt-1"></div>
+            </div>
+
+            <p class="font-hand text-2xl md:text-3xl text-sky-800 mt-2">
+                Впервые ляжет в свою святую люльку 👶✨
+            </p>
+
+            <!-- Scroll indicator -->
+            <a href="#about" class="inline-flex flex-col items-center mt-8 text-sky-500 hover:text-sky-700 transition-colors">
+                <span class="text-xs uppercase tracking-widest font-semibold mb-1">Листайте вниз</span>
+                <i class="fas fa-chevron-down text-lg animate-bounce"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-3xl mx-auto px-4 space-y-16 pb-24 relative z-10">
+
+        <!-- SECTION 1: ABOUT / MESSAGE FROM PARENTS -->
+        <section id="about" class="reveal glass-card rounded-3xl p-6 md:p-10 text-center relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-sky-200/50 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-amber-200/50 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-5 shadow-inner">
+                <i class="fas fa-baby-carriage"></i>
+            </div>
+
+            <h2 class="font-title text-2xl md:text-3xl font-bold text-slate-800 mb-4">
+                Дорогие и близкие!
+            </h2>
+
+            <p class="text-base md:text-lg text-slate-600 leading-relaxed font-normal mb-6">
+                В нашей семье произошло благословенное событие — родился наш сыночек <strong class="text-sky-700 font-semibold">Нурмухаммед</strong>. По древнему и светлому народному обычаю мы устраиваем праздник <strong class="text-amber-700 font-semibold">Бешик Той</strong>!
+            </p>
+
+            <p class="text-base md:text-lg text-slate-600 leading-relaxed font-normal italic font-hand text-xl md:text-2xl text-sky-800">
+                «Разделите с нами эту светлую радость, подарите малышу свои первые тёплые бата (благословения) и улыбки!»
+            </p>
+        </section>
+
+        <!-- SECTION 2: DATE & TIME WITH COUNTDOWN -->
+        <section class="reveal glass-card rounded-3xl p-6 md:p-10 text-center border-t-4 border-amber-400">
+            <h2 class="font-title text-2xl md:text-3xl font-bold text-slate-800 mb-8 flex items-center justify-center gap-3">
+                <i class="far fa-calendar-alt text-amber-500"></i> Дата и Время
+            </h2>
+
+            <!-- Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <!-- Date Card -->
+                <div class="bg-white/80 p-5 rounded-2xl border border-sky-100 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl shrink-0">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold block">День торжества</span>
+                        <span class="text-lg font-bold text-slate-800">15 Ноября 2026</span>
+                        <span class="text-xs text-sky-600 block font-medium">Воскресенье</span>
+                    </div>
+                </div>
+
+                <!-- Time Card -->
+                <div class="bg-white/80 p-5 rounded-2xl border border-sky-100 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center text-xl shrink-0">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold block">Время сбора</span>
+                        <span class="text-lg font-bold text-slate-800">16:30 — Сбор гостей</span>
+                        <span class="text-xs text-amber-600 block font-medium">17:30 — Начало программы</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
+                <h3 class="text-xs md:text-sm uppercase tracking-widest text-sky-100 font-semibold mb-4">
+                    До начала праздника осталось:
+                </h3>
+                <div id="countdown" class="grid grid-cols-4 gap-2 text-center">
+                    <div class="bg-white/20 backdrop-blur-md rounded-xl p-2 md:p-3">
+                        <span id="days" class="text-2xl md:text-4xl font-bold font-title block">00</span>
+                        <span class="text-[10px] md:text-xs text-sky-100">дней</span>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-md rounded-xl p-2 md:p-3">
+                        <span id="hours" class="text-2xl md:text-4xl font-bold font-title block">00</span>
+                        <span class="text-[10px] md:text-xs text-sky-100">часов</span>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-md rounded-xl p-2 md:p-3">
+                        <span id="minutes" class="text-2xl md:text-4xl font-bold font-title block">00</span>
+                        <span class="text-[10px] md:text-xs text-sky-100">минут</span>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-md rounded-xl p-2 md:p-3">
+                        <span id="seconds" class="text-2xl md:text-4xl font-bold font-title block">00</span>
+                        <span class="text-[10px] md:text-xs text-sky-100">секунд</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LOCATION & MAP -->
+        <section class="reveal glass-card rounded-3xl p-6 md:p-10 text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-500 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4 shadow-inner">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+
+            <h2 class="font-title text-2xl md:text-3xl font-bold text-slate-800 mb-2">
+                Место проведения
+            </h2>
+            <p class="text-slate-500 text-sm mb-6">Мы ждем вас в уютном банкетном зале</p>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6 inline-block w-full max-w-lg">
+                <h3 class="font-title text-xl font-bold text-sky-900 mb-1">Ресторан «Ак-Шумкар»</h3>
+                <p class="text-slate-600 text-sm md:text-base">г. Бишкек, ул. Исанова, 105 (перес. ул. Киевская)</p>
+            </div>
+
+            <!-- MAP ACTION BUTTONS -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="https://2gis.kg/bishkek" target="_blank" class="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-md transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-location-arrow"></i> Открыть в 2GIS
+                </a>
+                <a href="https://maps.google.com" target="_blank" class="w-full sm:w-auto px-6 py-3.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-medium shadow-md transition-all flex items-center justify-center gap-2">
+                    <i class="fab fa-google"></i> Google Карты
+                </a>
+            </div>
+        </section>
+
+        <!-- SECTION 4: RSVP / ATTENDANCE FORM -->
+        <section class="reveal glass-card rounded-3xl p-6 md:p-10 text-center border-b-4 border-sky-400">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4 shadow-inner">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+
+            <h2 class="font-title text-2xl md:text-3xl font-bold text-slate-800 mb-2">
+                Подтверждение присутствия
+            </h2>
+            <p class="text-slate-600 text-sm md:text-base mb-6 max-w-md mx-auto">
+                Пожалуйста, подтвердите ваше участие до <strong class="text-slate-800">1 Ноября 2026 года</strong>, чтобы мы могли правильно подготовить посадочные места.
+            </p>
+
+            <!-- Interactive Form -->
+            <form id="rsvpForm" onsubmit="sendToWhatsApp(event)" class="max-w-md mx-auto space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Ваше имя и фамилия</label>
+                    <input type="text" id="guestName" required placeholder="Например: Аскар и Айгуль" 
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all text-sm bg-white/90">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Сможете ли присутствовать?</label>
+                    <select id="attendanceStatus" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all text-sm bg-white/90">
+                        <option value="С радостью придем!">С радостью придем! (Иә, келеміз / Келебиз)</option>
+                        <option value="К сожалению, не сможем">К сожалению, не сможем прийти</option>
+                        <option value="Сообщу позже">Сообщу немного позже</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Количество гостей</label>
+                    <select id="guestCount" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all text-sm bg-white/90">
+                        <option value="1 человек">1 человек</option>
+                        <option value="2 человека">2 человека</option>
+                        <option value="3+ человека (с семьей)">3+ человека (с семьей)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-2 text-base animate-pulse-glow">
+                    <i class="fab fa-whatsapp text-xl"></i> Отправить ответ в WhatsApp
+                </button>
+            </form>
+        </section>
+
+        <!-- SECTION 5: FOOTER -->
+        <footer class="text-center space-y-3 pt-6">
+            <p class="font-hand text-3xl text-sky-800">
+                Ждем вас с нетерпением! ✨
+            </p>
+            <p class="text-xs text-slate-400 font-medium">
+                С любовью, родители Нурмухаммеда
+            </p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- 1. SKY CANVAS PARTICLES & STARS ---
+        const canvas = document.getElementById('skyCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2.5 + 0.5;
+                this.alpha = Math.random() * 0.7 + 0.2;
+                this.speedY = -(Math.random() * 0.3 + 0.1);
+                this.speedX = (Math.random() - 0.5) * 0.2;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 40; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        // --- 2. HERO ANIMATION SEQUENCE ---
+        function triggerHeroSequence() {
+            const mainCloud = document.getElementById('mainCloud');
+            const balloon = document.getElementById('hotAirBalloon');
+            const heroText = document.getElementById('heroText');
+            const prompt = document.getElementById('startPrompt');
+
+            if(prompt) prompt.style.display = 'none';
+
+            // Step 1: Main Cloud enters
+            setTimeout(() => {
+                mainCloud.classList.remove('scale-0', 'opacity-0');
+                mainCloud.classList.add('scale-100', 'opacity-100');
+            }, 200);
+
+            // Step 2: Hot Air Balloon appears from behind & scales up
+            setTimeout(() => {
+                balloon.classList.remove('scale-50', 'opacity-0', 'translate-y-20');
+                balloon.classList.add('scale-100', 'opacity-100', '-translate-y-12');
+            }, 1000);
+
+            // Step 3: Reveal Title & Guest Name Text
+            setTimeout(() => {
+                heroText.classList.remove('opacity-0', 'translate-y-8');
+                heroText.classList.add('opacity-100', 'translate-y-0');
+            }, 1800);
+        }
+
+        // Auto trigger on load
+        window.addEventListener('load', () => {
+            triggerHeroSequence();
+            startCountdown();
+        });
+
+        // --- 3. SCROLL REVEAL ANIMATIONS ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // --- 4. COUNTDOWN TIMER ---
+        function startCountdown() {
+            const eventDate = new Date('November 15, 2026 16:30:00').getTime();
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const diff = eventDate - now;
+
+                if (diff <= 0) {
+                    document.getElementById('countdown').innerHTML = "<div class='col-span-4 text-xl font-bold'>Праздник начался! 🎉</div>";
+                    return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').innerText = d < 10 ? '0' + d : d;
+                document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
+                document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
+                document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        // --- 5. WHATSAPP RSVP FORM INTEGRATION ---
+        function sendToWhatsApp(e) {
+            e.preventDefault();
+            const phone = "996555123456"; // Замените на ваш реальный номер WhatsApp (без плюса)
+            const name = document.getElementById('guestName').value;
+            const status = document.getElementById('attendanceStatus').value;
+            const count = document.getElementById('guestCount').value;
+
+            const message = `Бешик Тойго ЧАКЫРУУ! Нурмухаммед:\n\n👤 *Имя:* ${name}\n✨ *Присутствие:* ${status}\n👥 *Количество:* ${count}`;
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+        }
+
+        // --- 6. AUDIO PLAYER ---
+        let isPlaying = false;
+        const audio = document.getElementById('bgMusic');
+        const audioIcon = document.getElementById('audioIcon');
+
+        function toggleAudio() {
+            if (isPlaying) {
+                audio.pause();
+                audioIcon.className = "fas fa-music text-lg";
+            } else {
+                audio.play().then(() => {
+                    audioIcon.className = "fas fa-volume-up text-lg text-amber-500 animate-pulse";
+                }).catch(() => {});
+            }
+            isPlaying = !isPlaying;
+        }
+    </script>
+</body>
+</html>
